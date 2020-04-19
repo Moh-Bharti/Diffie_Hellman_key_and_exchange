@@ -53,6 +53,7 @@ def connect():
                     print()
                     print("-------Receiving public message from Client_B and Computing the shared secret----------")
                     d = int(data.decode("utf-8"))
+                    global secret
                     secret = (d**A_private)%mod_p
                     print("Shared Secret:   ",secret)
                 elif y == 2: # Sending the public key to Client B
@@ -95,7 +96,7 @@ def connect():
 def MAC(message):
     digester = hmac.new(bytes(secret), message, hashlib.sha1)
     digest = digester.hexdigest()
-
+    print(secret)
     return digest
 
 

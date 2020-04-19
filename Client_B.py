@@ -17,6 +17,7 @@ secret = 5544
 def MAC(message):
 
     digester = hmac.new(bytes(secret),message,hashlib.sha1)
+    print(secret)
     digest = digester.hexdigest()
     return digest
 
@@ -55,6 +56,7 @@ def connect():
                     d = int(data.decode("utf-8"))
                     print()
                     print("-------Receiving public message from Client_A and Computing the shared secret----------")
+                    global secret
                     secret = (d ** B_private) % mod_p
                     print("Shared Secret:   ", secret)
 
