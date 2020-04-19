@@ -4,15 +4,12 @@ import hmac
 import random
 mod_p = 17359
 
+A_private = 11
 secret = 5544
 da = 12 #random.randint(2,mod_p-2)
 alpha = 31
 beta = (alpha**da)%mod_p
 
-def share_secret(A):
-    base_g = primitive(mod_p)
-    secret = (A**alpha) % mod_p
-    return secret
 
 def primitive(pri):
     p = pri - 2
@@ -25,6 +22,9 @@ def primitive(pri):
     return pr
 
 
+g = primitive(mod_p)
+
+
 def connect():
 
     host = '127.0.0.1'  # The server's hostname or IP address
@@ -32,6 +32,7 @@ def connect():
     port = 65432        # The port used by the server
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        print("Starting the Communication.............. ")
         s.bind((host,port))
         s.listen(1)
         conn, addr = s.accept()
@@ -40,36 +41,55 @@ def connect():
         u = 0
         with conn:
             print('Connected by', addr)
-            while y<5:
-                if y == 0: # Sending the public key to Client B
+            while y < 7:
+                if y == 0:
+                    string = str((g**A_private)%mod_p)
+                    print()
+                    print("----Sending Client_B a public message-----")
+                    conn.sendall(bytes(string.encode()))
+                    u = 1
+                elif y == 1:
+                    data = conn.recv(1024)
+                    print()
+                    print("-------Receiving public message from Client_B and Computing the shared secret----------")
+                    d = int(data.decode("utf-8"))
+                    secret = (d**A_private)%mod_p
+                    print("Shared Secret:   ",secret)
+                elif y == 2: # Sending the public key to Client B
+                    print()
                     print("-----------Sending public key message--------------")
                     message = str(alpha)+" "+str(beta)+" "+MAC(str(alpha).encode())+" "+MAC(str(beta).encode())
                     conn.sendall(bytes(message.encode()))
                     print(message)
                     u = 1
-                elif y == 1: # Receiving Authenticate message
+                elif y == 3: # Receiving Authenticate message
                     data = conn.recv(1024)
+                    print()
                     print("-------------Receiving Authentication message--------------- ")
                     print(data.decode("utf-8"))
                     if data.decode("utf-8") != "Got the key":
                         break
                     else:
                         u = 1
-                elif y == 2:
+                elif y == 4:
                     data = conn.recv(1024)
                     st = decrypt(data.decode("utf-8"),mod_p)
+                    print()
                     print("Received message: ",st)
-                elif y == 3:
+                elif y == 5:
                     data = conn.recv(1024)
                     st = decrypt(data.decode("utf-8"), mod_p)
+                    print()
                     print("Received message: ",st)
                 else:
                     data = conn.recv(1024)
                     st = decrypt(data.decode("utf-8"), mod_p)
+                    print()
                     print("Received message: ",st)
                 y += u
 
-        print("Connection closed")
+        print()
+        print("..........Connection closed..........")
 
 
 def MAC(message):
@@ -98,6 +118,6 @@ def decrypt(message,p):
 
 
 if __name__=='__main__':
-    print("Starting the Communication.............. ")
+
 
     connect()
